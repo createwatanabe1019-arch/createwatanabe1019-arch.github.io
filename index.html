@@ -266,6 +266,61 @@
       .menu-edit-preview:empty { display: none; }
       .save-menu-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
       .save-menu-result { font-weight: 800; font-size: 0.9rem; }
+
+      /* ---------- profile / points / level ---------- */
+      .avatar {
+        width: 3.2rem; height: 3.2rem; border-radius: 50%; flex-shrink: 0;
+        background: var(--green); color: #fff; display: grid; place-items: center;
+        font-size: 1.5rem; font-weight: 800; border: 3px solid var(--gold);
+      }
+      .game-card { margin-top: 12px; padding: 14px 16px; }
+      .game-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .pts-badge {
+        background: var(--gold); color: #4a3500; font-weight: 800; border-radius: 50%;
+        width: 1.7rem; height: 1.7rem; display: inline-grid; place-items: center; font-size: 0.95rem;
+      }
+      .pts-num { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+      .pts-unit { font-weight: 800; color: var(--dim); }
+      .lv-label { margin-left: auto; font-weight: 800; font-size: 1.15rem; }
+      .game-sub { font-size: 0.85rem; color: var(--dim); font-weight: 700; margin-top: 4px; text-align: right; }
+      .title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+      .title-row .t-label { color: var(--dim); font-weight: 800; font-size: 0.85rem; }
+      .title-now { font-weight: 800; font-size: 1.05rem; color: var(--green-dark); }
+      @media (prefers-color-scheme: dark) { .title-now { color: var(--green); } }
+      .title-next { margin-left: auto; font-size: 0.85rem; color: var(--dim); font-weight: 700; text-align: right; }
+      .profile-toggle { margin-top: 12px; }
+
+      /* ---------- position tabs ---------- */
+      .pos-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+      .pos-tabs button {
+        flex: 1; border: 2px solid var(--line); background: var(--surface); border-radius: 12px;
+        font-weight: 800; padding: 9px 2px; color: var(--dim); min-height: 3rem; box-shadow: var(--shadow);
+      }
+      .pos-tabs button.active { background: var(--gold); border-color: var(--gold); color: #4a3500; }
+
+      /* ---------- today ring ---------- */
+      .ring-card { display: flex; gap: 14px; align-items: center; padding: 14px 16px; margin-bottom: 12px; }
+      .ring-wrap { position: relative; width: 96px; height: 96px; flex-shrink: 0; }
+      .ring-wrap svg { transform: rotate(-90deg); display: block; }
+      .ring-bg { fill: none; stroke: var(--surface-2); stroke-width: 10; }
+      .ring-fg { fill: none; stroke: var(--green); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+      @media (prefers-reduced-motion: reduce) { .ring-fg { transition: none; } }
+      .ring-center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+      .ring-center .rc-label { font-size: 0.62rem; font-weight: 800; color: var(--dim); line-height: 1.25; }
+      .ring-center .rc-pct { font-size: 1.3rem; font-weight: 800; line-height: 1.15; }
+      .ring-side { flex: 1; min-width: 0; }
+      .ring-count { font-weight: 800; margin-bottom: 6px; }
+      .ring-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+      .ring-list li { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.92rem; color: var(--dim); }
+      .ring-list li .rc { width: 1.15rem; height: 1.15rem; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: 0.7rem; color: transparent; flex-shrink: 0; background: var(--surface); }
+      .ring-list li.done { color: var(--ink); }
+      .ring-list li.done .rc { background: var(--green); border-color: var(--green); color: #fff; }
+
+      /* ---------- per-menu target progress ---------- */
+      .tbar-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+      .tbar-row .goalbar { flex: 1; margin-top: 0; }
+      .tbar-row .t-pct { font-weight: 800; color: var(--green-dark); min-width: 2.8rem; text-align: right; }
+      @media (prefers-color-scheme: dark) { .tbar-row .t-pct { color: var(--green); } }
     </style>
   </head>
   <body>
@@ -299,9 +354,10 @@
       <!-- ======== メンバー画面 ======== -->
       <section id="view-main" class="hidden">
         <div class="me-head">
+          <div class="avatar" id="me-avatar" aria-hidden="true">？</div>
           <div class="who">
-            <p class="me-name"><span id="me-name"></span> さん</p>
-            <p class="sub" style="margin:0;">今日もコツコツがんばろう！</p>
+            <p class="me-name"><span id="me-name"></span> 選手</p>
+            <p class="sub" style="margin:0;" id="me-sub">今日もコツコツがんばろう！</p>
           </div>
           <button id="logout-btn" class="logout-btn">ログアウト</button>
         </div>
@@ -318,6 +374,41 @@
           </div>
         </div>
 
+        <div class="card game-card">
+          <div class="game-top">
+            <span class="pts-badge" aria-hidden="true">P</span>
+            <span><span class="pts-num" id="pts-num">0</span> <span class="pts-unit">pt</span></span>
+            <span class="lv-label">Lv. <span id="lv-num">1</span></span>
+          </div>
+          <div class="goalbar"><div id="lv-fill" style="width:0%"></div></div>
+          <div class="game-sub" id="lv-next">次のレベルまであと 50pt</div>
+          <div class="title-row">
+            <span class="t-label">称号</span>
+            <span class="title-now" id="title-now">見習い</span>
+            <span class="title-next" id="title-next"></span>
+          </div>
+        </div>
+
+        <button id="profile-toggle" class="howto-btn profile-toggle">プロフィールを編集（ポジション・背番号）</button>
+        <div id="profile-panel" class="card hidden" style="margin-top:10px;">
+          <div class="form-grid">
+            <label>ポジション
+              <select id="prof-pos">
+                <option value="">未設定</option>
+                <option value="投手">投手</option>
+                <option value="捕手">捕手</option>
+                <option value="内野手">内野手</option>
+                <option value="外野手">外野手</option>
+              </select>
+            </label>
+            <label>背番号
+              <input id="prof-num" type="number" min="0" max="999" inputmode="numeric" placeholder="例：7" />
+            </label>
+            <button id="prof-save-btn" class="btn">プロフィールを保存する</button>
+            <p id="prof-result" class="hidden" style="margin:0; font-weight:800;"></p>
+          </div>
+        </div>
+
         <nav class="tabs" aria-label="画面切り替え">
           <button id="tab-today" class="active">きょうの記録</button>
           <button id="tab-calendar">カレンダー</button>
@@ -326,6 +417,25 @@
 
         <!-- きょうの記録 -->
         <div id="pane-today">
+          <div class="pos-tabs" id="pos-tabs" aria-label="ポジション切り替え">
+            <button data-pos="投手">投手</button>
+            <button data-pos="捕手">捕手</button>
+            <button data-pos="内野手">内野手</button>
+            <button data-pos="外野手">外野手</button>
+          </div>
+          <div class="card ring-card">
+            <div class="ring-wrap">
+              <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+                <circle class="ring-bg" cx="48" cy="48" r="40"></circle>
+                <circle class="ring-fg" id="ring-fg" cx="48" cy="48" r="40"></circle>
+              </svg>
+              <div class="ring-center"><div><div class="rc-label">今日の<br />達成率</div><div class="rc-pct" id="ring-pct">0%</div></div></div>
+            </div>
+            <div class="ring-side">
+              <div class="ring-count" id="ring-count"></div>
+              <ul class="ring-list" id="ring-list"></ul>
+            </div>
+          </div>
           <div class="date-nav">
             <button id="day-prev" aria-label="前の日">‹</button>
             <div class="dlabel" id="date-label"></div>
@@ -443,6 +553,18 @@
                 <option value="分">分（時間で数える）</option>
               </select>
             </label>
+            <label>ポジション
+              <select id="new-menu-pos">
+                <option value="共通">共通（全員）</option>
+                <option value="投手">投手</option>
+                <option value="捕手">捕手</option>
+                <option value="内野手">内野手</option>
+                <option value="外野手">外野手</option>
+              </select>
+            </label>
+            <label>目標値（1日の目標。0＝未設定）
+              <input id="new-menu-target" type="number" min="0" step="1" inputmode="numeric" placeholder="例：30" />
+            </label>
             <button id="add-menu-btn" class="btn">この種目を追加する</button>
             <p id="add-menu-result" class="hidden" style="margin:0; font-weight:800;"></p>
           </div>
@@ -516,7 +638,8 @@
         period: "week",
         coachPin: "",
         coachMembers: [],
-        menuAutoRetried: false
+        menuAutoRetried: false,
+        posTab: "投手"
       };
       var saveTimers = {};
       var howtoOpen = {};
@@ -587,6 +710,60 @@
         return 10;
       }
 
+      /* ---------------- position / target / points ---------------- */
+      var POSITIONS = ["投手", "捕手", "内野手", "外野手"];
+      function menuPos(menu) {
+        var p = String((menu && menu.position) || "").trim();
+        return POSITIONS.indexOf(p) >= 0 ? p : "共通";
+      }
+      function menuTarget(menu) {
+        var t = parseInt(menu && menu.target, 10);
+        return isFinite(t) && t > 0 ? t : 0;
+      }
+      function ownPosition() {
+        var p = S.me ? String(S.me.position || "").trim() : "";
+        return POSITIONS.indexOf(p) >= 0 ? p : "";
+      }
+      // 達成率・ポイントの対象：表示中の種目のうち「共通＋自分のポジション」
+      function targetMenus() {
+        var pos = ownPosition();
+        return visibleMenus().filter(function (m) {
+          var p = menuPos(m);
+          return p === "共通" || (pos !== "" && p === pos);
+        });
+      }
+      function calcPoints() {
+        var pts = 0;
+        var per = {};
+        S.logs.forEach(function (l) {
+          if (!l.done) return;
+          pts += 10;
+          per[l.date] = per[l.date] || {};
+          per[l.date][l.menu_id] = true;
+        });
+        var tm = targetMenus();
+        if (tm.length) {
+          Object.keys(per).forEach(function (d) {
+            if (tm.every(function (mn) { return per[d][mn.id]; })) pts += 20;
+          });
+        }
+        return pts;
+      }
+      var TITLES = [
+        [1, "見習い"], [2, "期待の新人"], [4, "レギュラー候補"], [6, "レギュラー"],
+        [9, "主力"], [12, "エース"], [16, "キャプテン"], [21, "レジェンド"]
+      ];
+      function levelOf(pts) { return 1 + Math.floor(pts / 50); }
+      function titleOf(lv) {
+        var t = TITLES[0][1];
+        TITLES.forEach(function (x) { if (lv >= x[0]) t = x[1]; });
+        return t;
+      }
+      function nextTitleOf(lv) {
+        for (var i = 0; i < TITLES.length; i++) if (TITLES[i][0] > lv) return TITLES[i];
+        return null;
+      }
+
       /* ---------------- login ---------------- */
       function loadMembers() {
         $("login-loading").classList.remove("hidden");
@@ -643,6 +820,7 @@
           S.me = j.member; S.pin = pin;
           S.menus = j.menus || []; S.logs = j.logs || [];
           S.weeklyGoal = j.weekly_goal || 0;
+          S.posTab = ownPosition() || "投手";
           S.viewDate = todayStr();
           hideBanner();
           showView("view-main");
@@ -662,8 +840,19 @@
         if (tab === "calendar") renderCalendar();
         if (tab === "summary") renderSummary();
       }
-      function renderMain() {
+      function renderHeader() {
+        if (!S.me) return;
         $("me-name").textContent = S.me.name;
+        $("me-avatar").textContent = String(S.me.name || "？").charAt(0);
+        var parts = [];
+        if (S.me.number !== undefined && S.me.number !== null && String(S.me.number) !== "") parts.push("背番号 " + S.me.number);
+        if (ownPosition()) parts.push(ownPosition());
+        $("me-sub").textContent = parts.length ? parts.join(" ・ ") : "今日もコツコツがんばろう！";
+      }
+      function renderMain() {
+        renderHeader();
+        $("prof-pos").value = ownPosition();
+        $("prof-num").value = (S.me.number === undefined || S.me.number === null) ? "" : S.me.number;
         renderStats();
         renderDay();
       }
@@ -675,6 +864,46 @@
         $("goal-fill").style.width = goal ? Math.min(100, wd / goal * 100) + "%" : "0%";
         $("goal-msg").textContent = goal && wd >= goal ? "今週の目標クリア！🎉" :
           goal ? "あと " + (goal - wd) + " 日で目標達成" : "今週もがんばろう";
+        // ポイント・レベル・称号
+        var pts = calcPoints();
+        var lv = levelOf(pts);
+        $("pts-num").textContent = pts;
+        $("lv-num").textContent = lv;
+        $("lv-fill").style.width = (pts % 50) / 50 * 100 + "%";
+        $("lv-next").textContent = "次のレベルまであと " + (lv * 50 - pts) + "pt";
+        $("title-now").textContent = titleOf(lv);
+        var nt = nextTitleOf(lv);
+        $("title-next").textContent = nt ?
+          "次の称号「" + nt[1] + "」まであと " + ((nt[0] - 1) * 50 - pts) + "pt" :
+          "最高の称号に到達！";
+        renderRing();
+      }
+      function renderRing() {
+        var tm = targetMenus();
+        var map = logMap(S.logs);
+        var t = todayStr();
+        var doneN = 0;
+        var list = $("ring-list");
+        list.innerHTML = "";
+        tm.forEach(function (m) {
+          var l = map[t + "|" + m.id];
+          var d = !!(l && l.done);
+          if (d) doneN++;
+          var li = document.createElement("li");
+          if (d) li.className = "done";
+          li.innerHTML = '<span class="rc">✓</span><span class="rn"></span>';
+          li.querySelector(".rn").textContent = m.name;
+          list.appendChild(li);
+        });
+        var pct = tm.length ? Math.round(doneN / tm.length * 100) : 0;
+        $("ring-pct").textContent = pct + "%";
+        $("ring-count").textContent = tm.length ?
+          "今日は " + doneN + " / " + tm.length + " 種目クリア" :
+          "対象の種目がありません";
+        var c = 2 * Math.PI * 40;
+        var fg = $("ring-fg");
+        fg.style.strokeDasharray = c;
+        fg.style.strokeDashoffset = c * (1 - pct / 100);
       }
       function renderDay() {
         $("date-label").textContent = dateLabel(S.viewDate);
@@ -682,7 +911,13 @@
         var map = logMap(S.logs);
         var list = $("menu-list");
         list.innerHTML = "";
-        var shownMenus = visibleMenus();
+        Array.prototype.forEach.call($("pos-tabs").children, function (b) {
+          b.classList.toggle("active", b.getAttribute("data-pos") === S.posTab);
+        });
+        var shownMenus = visibleMenus().filter(function (m) {
+          var p = menuPos(m);
+          return p === "共通" || p === S.posTab;
+        });
         shownMenus.forEach(function (menu) {
           var log = map[S.viewDate + "|" + menu.id];
           var amount = amountOf(log, menu);
@@ -701,7 +936,15 @@
             '</div>';
           card.querySelector(".menu-name").textContent = menu.name;
           card.querySelector(".amt").textContent = amount;
-          card.querySelector(".amount small").textContent = menu.unit;
+          var target = menuTarget(menu);
+          card.querySelector(".amount small").textContent = target > 0 ? "/ " + target + " " + menu.unit : menu.unit;
+          if (target > 0) {
+            var pct = Math.min(100, Math.round(amount / target * 100));
+            var trow = document.createElement("div");
+            trow.className = "tbar-row";
+            trow.innerHTML = '<div class="goalbar"><div style="width:' + pct + '%"></div></div><span class="t-pct">' + pct + '%</span>';
+            card.appendChild(trow);
+          }
           card.querySelector('[data-act="minus"]').addEventListener("click", function () { changeAmount(menu, -stepOf(menu)); });
           card.querySelector('[data-act="plus"]').addEventListener("click", function () { changeAmount(menu, stepOf(menu)); });
           card.querySelector('[data-act="done"]').addEventListener("click", function () { toggleDone(menu); });
@@ -1074,6 +1317,20 @@
                   '<option value="分">分（時間で数える）</option>' +
                 '</select>' +
               '</label>' +
+              '<label>ポジション' +
+                '<select class="f-pos">' +
+                  '<option value="共通">共通（全員）</option>' +
+                  '<option value="投手">投手</option>' +
+                  '<option value="捕手">捕手</option>' +
+                  '<option value="内野手">内野手</option>' +
+                  '<option value="外野手">外野手</option>' +
+                '</select>' +
+                '<span class="field-note">メンバーの画面では「共通＋その子のポジション」の種目が表示されます。</span>' +
+              '</label>' +
+              '<label>目標値（1日の目標。0＝未設定）' +
+                '<input class="f-target" type="number" min="0" step="1" inputmode="numeric" placeholder="例：30" />' +
+                '<span class="field-note">設定すると、メンバーの画面で「現在値／目標」と進捗バーが表示されます。単位は上の「単位」（回／分）に合わせてください。</span>' +
+              '</label>' +
               '<label>メンバーの画面への表示' +
                 '<select class="f-active">' +
                   '<option value="1">表示する</option>' +
@@ -1101,6 +1358,8 @@
           titleEl.textContent = menuHidden(menu) ? menu.name + "（非表示中）" : menu.name;
           var nameIn = card.querySelector(".f-name");
           var unitSel = card.querySelector(".f-unit");
+          var posSel = card.querySelector(".f-pos");
+          var targetIn = card.querySelector(".f-target");
           var activeSel = card.querySelector(".f-active");
           var ta = card.querySelector(".f-desc");
           var imgIn = card.querySelector(".f-img");
@@ -1109,6 +1368,8 @@
           var result = card.querySelector(".save-menu-result");
           nameIn.value = menu.name || "";
           unitSel.value = menu.unit === "分" ? "分" : "回";
+          posSel.value = menuPos(menu);
+          targetIn.value = menuTarget(menu) || "";
           activeSel.value = menuHidden(menu) ? "0" : "1";
           ta.value = menu.description || "";
           imgIn.value = menu.image_url || "";
@@ -1137,6 +1398,9 @@
             var wantImg = imgIn.value.trim();
             var wantVid = vidIn.value.trim();
             var wantUnit = unitSel.value === "分" ? "分" : "回";
+            var wantPos = posSel.value;
+            var wantTarget = parseInt(targetIn.value, 10);
+            if (!isFinite(wantTarget) || wantTarget < 0) wantTarget = 0;
             var wantActive = activeSel.value !== "0";
             var oldName = menu.name;
             var nameChanged = wantName !== String(oldName || "").trim();
@@ -1152,6 +1416,7 @@
                 action: "updatemenu", coach_pin: S.coachPin, menu_id: menu.id,
                 name: wantName, menu_name: wantName, new_name: wantName, title: wantName,
                 unit: wantUnit,
+                position: wantPos, target: wantTarget,
                 active: wantActive, visible: wantActive, hidden: !wantActive,
                 description: wantDesc, image_url: wantImg, video_url: wantVid
               };
@@ -1166,6 +1431,8 @@
               // サーバーに実際に保存された内容で、欄とプレビューを表示し直す
               if (saved.name) { nameIn.value = saved.name; menu.name = saved.name; }
               if (typeof saved.unit !== "undefined" && saved.unit) { menu.unit = saved.unit; unitSel.value = saved.unit === "分" ? "分" : "回"; }
+              if (typeof saved.position !== "undefined") { menu.position = saved.position; posSel.value = menuPos(menu); }
+              if (typeof saved.target !== "undefined") { menu.target = saved.target; targetIn.value = menuTarget(menu) || ""; }
               if (typeof saved.active !== "undefined" || typeof saved.visible !== "undefined" || typeof saved.hidden !== "undefined") {
                 menu.active = saved.active; menu.visible = saved.visible; menu.hidden = saved.hidden;
                 activeSel.value = menuHidden(menu) ? "0" : "1";
@@ -1188,6 +1455,8 @@
                   norm(saved.image_url) !== norm(wantImg) ||
                   norm(saved.video_url) !== norm(wantVid)) return true;
               if (typeof saved.unit !== "undefined" && saved.unit && norm(saved.unit) !== norm(wantUnit)) return true;
+              if (typeof saved.position !== "undefined" && saved.position && menuPos(saved) !== wantPos) return true;
+              if (typeof saved.target !== "undefined" && saved.target !== null && saved.target !== "" && Number(saved.target) !== wantTarget) return true;
               if (savedHasState(saved) && menuHidden(saved) === wantActive) return true;
               return false;
             }
@@ -1222,6 +1491,8 @@
               // いったん希望どおりの内容でローカルを揃える（サーバーの保存内容と違えば後で直す）
               menu.name = wantName;
               menu.unit = wantUnit;
+              menu.position = wantPos;
+              menu.target = wantTarget;
               menu.active = wantActive; menu.visible = wantActive; menu.hidden = !wantActive;
               menu.description = wantDesc;
               menu.image_url = wantImg;
@@ -1273,6 +1544,9 @@
       function doAddMenu() {
         var name = $("new-menu-name").value.trim();
         var unit = $("new-menu-unit").value === "分" ? "分" : "回";
+        var pos = $("new-menu-pos").value;
+        var target = parseInt($("new-menu-target").value, 10);
+        if (!isFinite(target) || target < 0) target = 0;
         var res = $("add-menu-result");
         res.classList.remove("hidden");
         if (!name) { res.textContent = "種目名を入れてください。"; res.style.color = "var(--red)"; return; }
@@ -1281,7 +1555,7 @@
         function send(payload) {
           return apiPost(payload).catch(function () { return apiPost(payload); });
         }
-        send({ action: "addmenu", coach_pin: S.coachPin, name: name, menu_name: name, new_name: name, title: name, unit: unit }).then(function (j) {
+        send({ action: "addmenu", coach_pin: S.coachPin, name: name, menu_name: name, new_name: name, title: name, unit: unit, position: pos, target: target }).then(function (j) {
           if (!j.ok) {
             btn.disabled = false; btn.textContent = "この種目を追加する";
             res.style.color = "var(--red)";
@@ -1306,6 +1580,7 @@
               res.style.color = "var(--green)";
               res.textContent = "種目「" + name + "」を追加しました。下の編集一覧にも出ています。";
               $("new-menu-name").value = "";
+              $("new-menu-target").value = "";
             } else {
               res.style.color = "var(--red)";
               res.textContent = "追加を受け付けましたが、一覧で確認できませんでした。コーチ画面を開き直すか、シートの「menus」タブで確認してください。";
@@ -1324,8 +1599,60 @@
         });
       }
 
+      /* ---------------- profile (position / number) ---------------- */
+      function doSaveProfile() {
+        if (!S.me) return;
+        var pos = $("prof-pos").value;
+        var numRaw = $("prof-num").value.trim();
+        var res = $("prof-result");
+        res.classList.remove("hidden");
+        if (numRaw !== "" && (!/^\d{1,3}$/.test(numRaw))) {
+          res.textContent = "背番号は数字で入れてね。";
+          res.style.color = "var(--red)";
+          return;
+        }
+        var btn = $("prof-save-btn");
+        btn.disabled = true; btn.textContent = "保存中…";
+        apiPost({
+          action: "setprofile", member_id: S.me.id, pin: S.pin,
+          position: pos, number: numRaw === "" ? "" : Number(numRaw)
+        }).then(function (j) {
+          btn.disabled = false; btn.textContent = "プロフィールを保存する";
+          if (!j.ok) {
+            res.textContent = "保存できませんでした（" + (j.error || "error") + "）";
+            res.style.color = "var(--red)";
+            return;
+          }
+          if (j.member) { S.me.position = j.member.position; S.me.number = j.member.number; }
+          else { S.me.position = pos; S.me.number = numRaw === "" ? "" : Number(numRaw); }
+          if (ownPosition()) S.posTab = ownPosition();
+          res.textContent = "保存しました ✓";
+          res.style.color = "var(--green)";
+          renderHeader();
+          renderStats();
+          renderDay();
+        }).catch(function () {
+          btn.disabled = false; btn.textContent = "プロフィールを保存する";
+          res.textContent = "通信に失敗しました。もう一度試してね。";
+          res.style.color = "var(--red)";
+        });
+      }
+
       /* ---------------- events ---------------- */
       $("login-btn").addEventListener("click", doLogin);
+      $("profile-toggle").addEventListener("click", function () {
+        var p = $("profile-panel");
+        var willOpen = p.classList.contains("hidden");
+        p.classList.toggle("hidden", !willOpen);
+        $("profile-toggle").textContent = willOpen ? "プロフィール編集をとじる" : "プロフィールを編集（ポジション・背番号）";
+      });
+      $("prof-save-btn").addEventListener("click", doSaveProfile);
+      Array.prototype.forEach.call($("pos-tabs").children, function (b) {
+        b.addEventListener("click", function () {
+          S.posTab = b.getAttribute("data-pos");
+          renderDay();
+        });
+      });
       $("pin-input").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
       $("logout-btn").addEventListener("click", function () {
         S.me = null; S.pin = ""; S.logs = [];
