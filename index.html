@@ -266,6 +266,10 @@
       .menu-edit-preview:empty { display: none; }
       .save-menu-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
       .save-menu-result { font-weight: 800; font-size: 0.9rem; }
+      .btn.danger { background: var(--red); color: #fff; }
+      .btn.danger:active { opacity: 0.85; }
+      .delete-menu-row { border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px; display: grid; gap: 10px; }
+      .delete-warn { margin: 0; font-weight: 800; font-size: 0.9rem; color: var(--red); }
 
       /* ---------- profile / points / level ---------- */
       .avatar {
@@ -537,8 +541,8 @@
             <p id="add-result" class="hidden" style="margin:0; font-weight:800;"></p>
           </div>
         </div>
-        <h2>トレーニングメニューの編集（種目名・単位・説明・画像・動画）</h2>
-        <p class="sub">種目名（メニュー名）・単位（回／分）はここで変えられます。名前を変えて保存すると、メンバーの記録画面にも新しい名前で表示されます。「表示しない」にした種目はメンバーの画面に出なくなります（記録データは消えません）。説明文・画像・動画を付けると、メンバーの記録画面で「やり方を見る」から見られます。<br />画像は画像のURL、動画はYouTubeのリンクがおすすめです。Googleドライブの共有リンクも使えます（ドライブのファイルは「リンクを知っている全員が閲覧可」にしてください）。</p>
+        <h2>トレーニングメニューの編集（種目名・単位・説明・画像・動画・削除）</h2>
+        <p class="sub">種目名（メニュー名）・単位（回／分）はここで変えられます。名前を変えて保存すると、メンバーの記録画面にも新しい名前で表示されます。「表示しない」にした種目はメンバーの画面に出なくなります（記録データは消えません）。いらなくなった種目は、各カード下の「この種目を削除する」から完全に削除できます（削除は元に戻せません。迷ったら「表示しない」がおすすめです）。説明文・画像・動画を付けると、メンバーの記録画面で「やり方を見る」から見られます。<br />画像は画像のURL、動画はYouTubeのリンクがおすすめです。Googleドライブの共有リンクも使えます（ドライブのファイルは「リンクを知っている全員が閲覧可」にしてください）。</p>
         <div id="menu-edit-list"></div>
 
         <h2>新しい種目を追加</h2>
@@ -1353,6 +1357,17 @@
                 '<span class="save-menu-result"></span>' +
               '</div>' +
               '<span class="field-note">説明・画像・動画は、空欄にして保存するとその内容は消えます（種目名は空欄にはできません）。プレビューは入力すると下に表示されます。</span>' +
+              '<div class="delete-menu-row">' +
+                '<button class="btn danger delete-menu-btn" type="button">この種目を削除する</button>' +
+                '<div class="delete-confirm hidden">' +
+                  '<p class="delete-warn">本当にこの種目を削除しますか？削除すると元に戻せません。過去の記録を残したい場合は、削除ではなく上の「表示しない（お休みにする）」がおすすめです。</p>' +
+                  '<div class="save-menu-row">' +
+                    '<button class="btn danger delete-yes-btn" type="button">削除する</button>' +
+                    '<button class="btn ghost delete-no-btn" type="button">やめる</button>' +
+                  '</div>' +
+                '</div>' +
+                '<span class="save-menu-result delete-result"></span>' +
+              '</div>' +
             '</div>';
           var titleEl = card.querySelector(".me-title");
           titleEl.textContent = menuHidden(menu) ? menu.name + "（非表示中）" : menu.name;
@@ -1536,7 +1551,87 @@
               }).catch(function () { finishCommError(); });
             }).catch(function () { finishCommError(); });
           });
+          // ---- 削除（確認ステップ付き） ----
+          var delBtn = card.querySelector(".delete-menu-btn");
+          var delConfirm = card.querySelector(".delete-confirm");
+          var delYes = card.querySelector(".delete-yes-btn");
+          var delNo = card.querySelector(".delete-no-btn");
+          var delResult = card.querySelector(".delete-result");
+          delBtn.addEventListener("click", function () {
+            delConfirm.classList.remove("hidden");
+            delBtn.classList.add("hidden");
+            delResult.textContent = "";
+          });
+          delNo.addEventListener("click", function () {
+            delConfirm.classList.add("hidden");
+            delBtn.classList.remove("hidden");
+          });
+          delYes.addEventListener("click", function () {
+            delYes.disabled = true; delYes.textContent = "削除中…";
+            delNo.disabled = true;
+            delResult.textContent = "";
+            deleteMenuFromServer(menu).then(function (outcome) {
+              if (outcome === "deleted") {
+                S.menus = S.menus.filter(function (mm) { return mm.id !== menu.id; });
+                card.remove();
+                showBanner("種目「" + (menu.name || "") + "」を削除しました。", "info");
+                if (!S.menus.length) renderMenuEditor();
+              } else if (outcome === "unsupported") {
+                delYes.disabled = false; delYes.textContent = "削除する";
+                delNo.disabled = false;
+                delResult.style.color = "var(--red)";
+                delResult.textContent = "削除用のAPIに届きませんでした。当面は上の「表示しない（お休みにする）」でメンバーの画面から消すか、Googleシートの「menus」タブでその種目の行を削除してください。";
+              } else {
+                delYes.disabled = false; delYes.textContent = "削除する";
+                delNo.disabled = false;
+                delResult.style.color = "var(--red)";
+                delResult.textContent = "削除を確認できませんでした。コーチ画面を開き直して、一覧から消えているか確認してください。";
+              }
+            });
+          });
           list.appendChild(card);
+        });
+      }
+
+      /* ---------------- coach: delete menu ---------------- */
+      // サーバー側の削除アクション名の表記ゆれに備えて候補を順に試す。
+      // 削除できたら一覧を読み直して、本当に消えたかまで確認する。
+      function deleteMenuFromServer(menu) {
+        var actions = ["deletemenu", "delete_menu", "removemenu", "menu_delete"];
+        function attempt(i) {
+          if (i >= actions.length) return Promise.resolve("unsupported");
+          var payload = {
+            action: actions[i], coach_pin: S.coachPin,
+            menu_id: menu.id, id: menu.id, name: menu.name || ""
+          };
+          return apiPost(payload).then(function (j) {
+            if (j && j.ok) return "sent";
+            if (j && j.error === "unknown_action") return attempt(i + 1);
+            return "sent"; // ok:falseでも他の理由なら送信自体は届いている扱いで確認へ進む
+          }).catch(function () {
+            // 通信が一瞬途切れただけのことがあるので、同じアクションを1回だけ送り直す
+            return apiPost(payload).then(function (j) {
+              if (j && j.ok) return "sent";
+              if (j && j.error === "unknown_action") return attempt(i + 1);
+              return "sent";
+            }).catch(function () { return "unknown"; });
+          });
+        }
+        return attempt(0).then(function (r) {
+          if (r !== "sent") return r;
+          return apiPost({ action: "coach", pin: S.coachPin }).then(function (jj) {
+            if (jj && jj.ok && jj.menus) {
+              var stillThere = jj.menus.some(function (mm) { return mm.id === menu.id; });
+              if (!stillThere) {
+                S.menus = jj.menus;
+                if (jj.members) S.coachMembers = jj.members;
+                if (jj.logs) S.logs = jj.logs;
+                return "deleted";
+              }
+              return "unknown";
+            }
+            return "unknown";
+          }).catch(function () { return "unknown"; });
         });
       }
 
