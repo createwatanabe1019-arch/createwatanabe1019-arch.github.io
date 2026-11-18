@@ -1,0 +1,1361 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>自主トレ記録（メンバー用）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #eef4ec;
+        --surface: #ffffff;
+        --surface-2: #e2eee0;
+        --ink: #1c2b1e;
+        --dim: #5c6f5e;
+        --line: #cfdfc9;
+        --green: #1e7d46;
+        --green-dark: #145c31;
+        --green-soft: #dcefe0;
+        --orange: #e86a17;
+        --red: #cf3a26;
+        --gold: #f2b705;
+        --shadow: 0 2px 10px rgba(23, 48, 31, 0.10);
+        --radius: 16px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f1710;
+          --surface: #1a261b;
+          --surface-2: #243324;
+          --ink: #eef5ec;
+          --dim: #a3b8a4;
+          --line: #33472f;
+          --green: #3cb96e;
+          --green-dark: #2b9a58;
+          --green-soft: #1e3a26;
+          --orange: #f58a3c;
+          --red: #e86a55;
+          --gold: #f2b705;
+          --shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", system-ui, sans-serif;
+        line-height: 1.55;
+      }
+      button, input, select { font: inherit; color: inherit; }
+      button { cursor: pointer; }
+      button, [role="button"], select, input:not([type="checkbox"]) { min-height: 2.75rem; }
+      .wrap { max-width: 560px; margin: 0 auto; padding: 16px 14px 40px; }
+      @media (min-width: 900px) { .wrap { max-width: 720px; } }
+
+      h1 { font-size: 1.45rem; font-weight: 800; margin: 4px 0 2px; letter-spacing: 0.02em; }
+      h2 { font-size: 1.1rem; font-weight: 800; margin: 22px 0 10px; }
+      .sub { color: var(--dim); font-size: 0.92rem; margin: 0 0 14px; }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+      .hidden { display: none !important; }
+
+      /* ---------- status banner ---------- */
+      .banner {
+        border-radius: 12px; padding: 10px 14px; font-size: 0.92rem; font-weight: 700;
+        margin-bottom: 12px; display: none;
+      }
+      .banner.show { display: block; }
+      .banner.err { background: #fbe9e5; color: #8f2413; border: 1px solid #efb3a6; }
+      .banner.info { background: var(--green-soft); color: var(--green-dark); border: 1px solid var(--line); }
+      @media (prefers-color-scheme: dark) {
+        .banner.err { background: #3d1d16; color: #f2a08d; border-color: #6e3527; }
+        .banner.info { color: var(--green); }
+      }
+      .loading { text-align: center; color: var(--dim); padding: 34px 0; font-weight: 700; }
+      .ball-spin { display: inline-block; font-size: 1.6rem; animation: spin 1.1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .ball-spin { animation: none; } }
+
+      /* ---------- login ---------- */
+      .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      @media (min-width: 560px) { .member-grid { grid-template-columns: 1fr 1fr 1fr; } }
+      .member-btn {
+        background: var(--surface); border: 2px solid var(--line); border-radius: 14px;
+        padding: 14px 8px; font-weight: 800; font-size: 1.02rem; min-height: 3.6rem;
+        box-shadow: var(--shadow); word-break: break-all;
+      }
+      .member-btn:active { transform: scale(0.98); }
+      .member-btn.selected { border-color: var(--green); background: var(--green-soft); }
+      .pin-row { display: flex; gap: 10px; margin-top: 14px; }
+      .pin-input {
+        flex: 1; min-width: 0; font-size: 1.5rem; letter-spacing: 0.5em; text-align: center;
+        border: 2px solid var(--line); border-radius: 12px; background: var(--surface);
+        padding: 8px; font-weight: 800;
+      }
+      .pin-input:focus { outline: 3px solid var(--green-soft); border-color: var(--green); }
+      .btn {
+        border: none; border-radius: 12px; font-weight: 800; padding: 10px 18px;
+        background: var(--green); color: #fff; min-height: 3rem;
+      }
+      .btn:active { background: var(--green-dark); }
+      .btn:disabled { opacity: 0.55; }
+      .btn.sub-btn { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
+      .btn.ghost { background: transparent; color: var(--dim); border: 1px solid var(--line); }
+      .coach-link { margin-top: 22px; text-align: center; }
+      .coach-link button { background: none; border: none; color: var(--dim); font-weight: 700; text-decoration: underline; padding: 10px 16px; }
+      .empty-note { text-align: center; color: var(--dim); padding: 18px 6px; font-weight: 700; }
+
+      /* ---------- main header ---------- */
+      .me-head { display: flex; align-items: flex-start; gap: 12px; }
+      .me-head .who { flex: 1; min-width: 0; }
+      .me-name { font-size: 1.3rem; font-weight: 800; margin: 0; }
+      .logout-btn { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; font-weight: 700; color: var(--dim); flex-shrink: 0; }
+      .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+      .stat {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+        padding: 10px 14px; box-shadow: var(--shadow);
+      }
+      .stat .label { font-size: 0.8rem; color: var(--dim); font-weight: 700; }
+      .stat .value { font-size: 1.5rem; font-weight: 800; line-height: 1.25; }
+      .stat .value small { font-size: 0.85rem; font-weight: 700; color: var(--dim); }
+      .flame { color: var(--orange); }
+      .goalbar { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+      .goalbar > div { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.4s ease; }
+      @media (prefers-reduced-motion: reduce) { .goalbar > div { transition: none; } }
+
+      /* ---------- tabs ---------- */
+      .tabs { display: flex; gap: 6px; margin: 18px 0 14px; background: var(--surface-2); padding: 5px; border-radius: 14px; }
+      .tabs button {
+        flex: 1; border: none; background: transparent; border-radius: 10px;
+        font-weight: 800; padding: 8px 4px; color: var(--dim); min-height: 2.9rem;
+      }
+      .tabs button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+
+      /* ---------- date nav ---------- */
+      .date-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+      .date-nav .dlabel { flex: 1; text-align: center; font-weight: 800; font-size: 1.05rem; }
+      .date-nav button {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+        width: 3rem; font-weight: 800; font-size: 1.1rem;
+      }
+      .today-link { display: block; margin: 0 auto 10px; background: none; border: none; color: var(--green); font-weight: 800; text-decoration: underline; padding: 6px 14px; }
+      .save-state { text-align: right; font-size: 0.82rem; color: var(--dim); font-weight: 700; min-height: 1.3em; margin-bottom: 6px; }
+
+      /* ---------- menu cards ---------- */
+      .menu-card {
+        background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius);
+        padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow);
+      }
+      .menu-card.done { border-color: var(--green); background: linear-gradient(0deg, var(--green-soft), var(--green-soft)) , var(--surface); }
+      .menu-top { display: flex; align-items: center; gap: 10px; }
+      .menu-name { font-weight: 800; font-size: 1.08rem; flex: 1; min-width: 0; }
+      .check-badge {
+        width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid var(--line);
+        display: grid; place-items: center; font-weight: 800; color: transparent; flex-shrink: 0;
+        background: var(--surface);
+      }
+      .menu-card.done .check-badge { background: var(--green); border-color: var(--green); color: #fff; }
+      .menu-controls { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+      .stepper { display: flex; align-items: center; gap: 6px; flex: 1; }
+      .stepper button {
+        width: 3.1rem; height: 3.1rem; border-radius: 12px; border: 1px solid var(--line);
+        background: var(--surface-2); font-size: 1.35rem; font-weight: 800; flex-shrink: 0;
+      }
+      .stepper button:active { background: var(--line); }
+      .amount { flex: 1; text-align: center; font-size: 1.55rem; font-weight: 800; min-width: 3.2rem; }
+      .amount small { font-size: 0.9rem; color: var(--dim); font-weight: 700; }
+      .done-btn {
+        border: none; border-radius: 12px; padding: 10px 16px; font-weight: 800; min-height: 3.1rem;
+        background: var(--surface-2); color: var(--dim); border: 1px solid var(--line); flex-shrink: 0;
+      }
+      .menu-card.done .done-btn { background: var(--green); color: #fff; border-color: var(--green); }
+
+      .stamp {
+        margin: 16px auto 4px; width: fit-content; border: 3px solid var(--red); color: var(--red);
+        border-radius: 12px; padding: 8px 22px; font-weight: 800; font-size: 1.3rem;
+        transform: rotate(-4deg); letter-spacing: 0.12em; background: var(--surface);
+      }
+
+      /* ---------- calendar ---------- */
+      .cal-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+      .cal-head .mlabel { flex: 1; text-align: center; font-weight: 800; font-size: 1.05rem; }
+      .cal-head button { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; width: 3rem; font-weight: 800; }
+      .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+      .cal-dow { text-align: center; font-size: 0.78rem; font-weight: 800; color: var(--dim); padding: 4px 0; }
+      .cal-day {
+        aspect-ratio: 1; border: none; background: transparent; border-radius: 10px;
+        font-weight: 700; position: relative; display: grid; place-items: center; min-height: 2.6rem;
+      }
+      .cal-day .dot {
+        position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+        width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+      }
+      .cal-day.full .dot { background: var(--orange); width: 9px; height: 9px; }
+      .cal-day.is-today { outline: 2px solid var(--green); outline-offset: -2px; }
+      .cal-day.selected { background: var(--green-soft); }
+      .cal-day.other { color: var(--dim); opacity: 0.45; }
+      .cal-legend { font-size: 0.82rem; color: var(--dim); font-weight: 700; margin-top: 10px; text-align: center; }
+
+      /* ---------- summary ---------- */
+      .sum-table { width: 100%; border-collapse: collapse; }
+      .sum-table th, .sum-table td { padding: 9px 6px; text-align: right; border-bottom: 1px solid var(--line); font-weight: 700; }
+      .sum-table th:first-child, .sum-table td:first-child { text-align: left; }
+      .sum-table th { color: var(--dim); font-size: 0.82rem; }
+      .period-switch { display: flex; gap: 6px; margin-bottom: 12px; }
+      .period-switch button { flex: 1; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; font-weight: 800; padding: 8px; }
+      .period-switch button.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+      /* ---------- coach ---------- */
+      .coach-sum { display: flex; gap: 10px; margin-bottom: 12px; }
+      .coach-sum .stat { flex: 1; }
+      .coach-row {
+        width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line);
+        border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow); display: block;
+      }
+      .coach-row .r1 { display: flex; align-items: baseline; gap: 8px; }
+      .coach-row .rname { font-weight: 800; font-size: 1.05rem; flex: 1; min-width: 0; }
+      .coach-row .rtoday { font-weight: 800; font-size: 0.9rem; padding: 2px 10px; border-radius: 99px; background: var(--surface-2); color: var(--dim); }
+      .coach-row .rtoday.did { background: var(--green); color: #fff; }
+      .coach-row .r2 { color: var(--dim); font-size: 0.88rem; font-weight: 700; margin-top: 3px; }
+      .coach-row .rpin { font-size: 0.92rem; font-weight: 800; color: var(--green-dark); margin-top: 3px; letter-spacing: 0.06em; }
+      @media (prefers-color-scheme: dark) { .coach-row .rpin { color: var(--green); } }
+      .pin-help p { margin: 0 0 8px; }
+      .pin-help p:last-of-type { margin-bottom: 0; }
+      .form-grid { display: grid; gap: 10px; }
+      .form-grid label { font-weight: 800; font-size: 0.9rem; display: grid; gap: 5px; }
+      .form-grid input, .form-grid select, .form-grid textarea {
+        border: 2px solid var(--line); border-radius: 10px; padding: 9px 12px; background: var(--surface); font-weight: 700; width: 100%;
+      }
+      .form-grid textarea { resize: vertical; line-height: 1.5; }
+      .form-grid input:focus, .form-grid textarea:focus { outline: 3px solid var(--green-soft); border-color: var(--green); }
+      .sheet-link { display: inline-block; margin-top: 14px; font-weight: 800; color: var(--green); padding: 10px 4px; }
+      .foot-note { color: var(--dim); font-size: 0.82rem; text-align: center; margin-top: 26px; }
+
+      /* ---------- menu howto (説明・画像・動画) ---------- */
+      .howto-btn {
+        width: 100%; margin-top: 12px; background: var(--surface-2); border: 1px solid var(--line);
+        border-radius: 10px; padding: 9px 12px; font-weight: 800; color: var(--green-dark);
+      }
+      @media (prefers-color-scheme: dark) { .howto-btn { color: var(--green); } }
+      .howto-panel { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 12px; display: grid; gap: 12px; }
+      .howto-desc { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 0.95rem; }
+      .howto-img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); }
+      .video-frame {
+        position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden;
+        background: #000; border: 1px solid var(--line);
+      }
+      .video-frame iframe, .video-frame video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+      .video-link { display: inline-block; text-align: center; text-decoration: none; }
+
+      /* ---------- coach menu editor ---------- */
+      .menu-edit-card { margin-bottom: 12px; }
+      .menu-edit-card .me-title { font-weight: 800; font-size: 1.05rem; margin: 0 0 10px; }
+      .field-note { font-size: 0.8rem; color: var(--dim); font-weight: 700; }
+      .menu-edit-preview { display: grid; gap: 12px; margin-top: 4px; }
+      .menu-edit-preview:empty { display: none; }
+      .save-menu-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .save-menu-result { font-weight: 800; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <div id="banner" class="banner" role="alert"></div>
+
+      <!-- ======== ログイン ======== -->
+      <section id="view-login">
+        <h1>⚾ 自主トレ記録</h1>
+        <p class="sub">南恩加島子供会野球部<br />じぶんの名前をタップして、合言葉（4けた）を入れてね。</p>
+        <div id="login-loading" class="loading"><span class="ball-spin">⚾</span><br />メンバーを読み込み中…</div>
+        <div id="login-body" class="hidden">
+          <div id="member-grid" class="member-grid"></div>
+          <p id="no-members" class="empty-note hidden">まだメンバーが登録されていません。<br />コーチに登録してもらってね。</p>
+          <div id="pin-area" class="hidden">
+            <p style="font-weight:800; margin:16px 0 0;"><span id="pin-member-name"></span> さん の合言葉</p>
+            <div class="pin-row">
+              <input id="pin-input" class="pin-input" type="password" inputmode="numeric" autocomplete="off"
+                     maxlength="8" placeholder="・・・・" aria-label="合言葉（PIN）" />
+              <button id="login-btn" class="btn">ログイン</button>
+            </div>
+            <p id="pin-error" class="hidden" style="color:var(--red); font-weight:800; margin:8px 0 0;">合言葉がちがうみたい。もう一度入れてみてね。</p>
+            <p style="color:var(--dim); font-weight:700; font-size:0.88rem; margin:8px 0 0;">合言葉を忘れたら、コーチに聞いてね。コーチが確認して教えてくれるよ。</p>
+          </div>
+        </div>
+        <div class="coach-link">
+          <button id="to-coach">コーチはこちら（全員の様子・メンバー登録）</button>
+        </div>
+      </section>
+
+      <!-- ======== メンバー画面 ======== -->
+      <section id="view-main" class="hidden">
+        <div class="me-head">
+          <div class="who">
+            <p class="me-name"><span id="me-name"></span> さん</p>
+            <p class="sub" style="margin:0;">今日もコツコツがんばろう！</p>
+          </div>
+          <button id="logout-btn" class="logout-btn">ログアウト</button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat">
+            <div class="label">れんぞく記録</div>
+            <div class="value"><span class="flame">🔥</span> <span id="streak-num">0</span><small> 日</small></div>
+          </div>
+          <div class="stat">
+            <div class="label">今週の目標（<span id="goal-text">0 / 0 日</span>）</div>
+            <div class="goalbar"><div id="goal-fill" style="width:0%"></div></div>
+            <div class="value" style="font-size:0.95rem; margin-top:4px;" id="goal-msg">今週もがんばろう</div>
+          </div>
+        </div>
+
+        <nav class="tabs" aria-label="画面切り替え">
+          <button id="tab-today" class="active">きょうの記録</button>
+          <button id="tab-calendar">カレンダー</button>
+          <button id="tab-summary">まとめ</button>
+        </nav>
+
+        <!-- きょうの記録 -->
+        <div id="pane-today">
+          <div class="date-nav">
+            <button id="day-prev" aria-label="前の日">‹</button>
+            <div class="dlabel" id="date-label"></div>
+            <button id="day-next" aria-label="次の日">›</button>
+          </div>
+          <button id="back-today" class="today-link hidden">今日にもどる</button>
+          <div class="save-state" id="save-state" aria-live="polite"></div>
+          <div id="menu-list"></div>
+          <div id="all-done" class="stamp hidden">できた！⚾</div>
+        </div>
+
+        <!-- カレンダー -->
+        <div id="pane-calendar" class="hidden">
+          <div class="card">
+            <div class="cal-head">
+              <button id="cal-prev" aria-label="前の月">‹</button>
+              <div class="mlabel" id="cal-label"></div>
+              <button id="cal-next" aria-label="次の月">›</button>
+            </div>
+            <div class="cal-grid" id="cal-dow"></div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <p class="cal-legend">● 練習した日　●（大）全部できた日<br />日をタップすると、その日の記録が見られるよ</p>
+          </div>
+        </div>
+
+        <!-- まとめ -->
+        <div id="pane-summary" class="hidden">
+          <div class="card">
+            <div class="period-switch">
+              <button id="per-week" class="active">今週</button>
+              <button id="per-month">今月</button>
+            </div>
+            <p style="margin:0 0 8px; font-weight:800;">練習した日： <span id="sum-days">0</span> 日</p>
+            <table class="sum-table">
+              <thead><tr><th>種目</th><th>合計</th><th>やった日</th></tr></thead>
+              <tbody id="sum-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== コーチログイン ======== -->
+      <section id="view-coach-login" class="hidden">
+        <h1>コーチ画面</h1>
+        <p class="sub">コーチ用PINを入れてください。</p>
+        <div class="pin-row">
+          <input id="coach-pin-input" class="pin-input" type="password" inputmode="numeric" autocomplete="off"
+                 maxlength="8" placeholder="・・・・" aria-label="コーチPIN" />
+          <button id="coach-login-btn" class="btn">開く</button>
+        </div>
+        <p id="coach-pin-error" class="hidden" style="color:var(--red); font-weight:800; margin:8px 0 0;">PINが違います。</p>
+        <div class="coach-link"><button id="coach-back">← メンバーのログインに戻る</button></div>
+      </section>
+
+      <!-- ======== コーチ画面 ======== -->
+      <section id="view-coach" class="hidden">
+        <div class="me-head">
+          <div class="who">
+            <p class="me-name">みんなの様子</p>
+            <p class="sub" style="margin:0;" id="coach-date"></p>
+          </div>
+          <button id="coach-logout" class="logout-btn">閉じる</button>
+        </div>
+        <div class="coach-sum">
+          <div class="stat"><div class="label">今日やった人</div><div class="value"><span id="coach-today-count">0</span><small> / </small><span id="coach-total">0</span><small> 人</small></div></div>
+          <div class="stat"><div class="label">今週チーム合計</div><div class="value"><span id="coach-week-total">0</span><small> 日分</small></div></div>
+        </div>
+        <div id="coach-list"></div>
+        <p id="coach-empty" class="empty-note hidden">メンバーはまだいません。下のフォームから登録してください。</p>
+
+        <h2>合言葉（PIN）を忘れたとき</h2>
+        <div class="card pin-help">
+          <p>各メンバーの合言葉は、記録用Googleシートの <strong>「members」タブ</strong> の <strong>pin 列</strong> に保存されています。メンバーが合言葉を忘れたら、シートでその子の行を確認して教えてあげてください。</p>
+          <p>コーチPINは、同じシートの <strong>「settings」タブ</strong> にあります。</p>
+          <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/11hYsUO39468sPgaOVD8aV8BsKhbO1WgO0N_hyB56JRM/edit" target="_blank" rel="noopener">Googleシートで合言葉を確認する →</a>
+        </div>
+
+        <h2>メンバーを追加</h2>
+        <div class="card">
+          <div class="form-grid">
+            <label>名前（ニックネーム・背番号でもOK）
+              <input id="new-name" type="text" placeholder="例：たろう" />
+            </label>
+            <label>合言葉（4けたの数字）
+              <input id="new-pin" type="text" inputmode="numeric" maxlength="4" placeholder="例：1234" />
+            </label>
+            <label>週間目標（週に何日やるか）
+              <select id="new-goal">
+                <option value="1">週1日</option>
+                <option value="2">週2日</option>
+                <option value="3" selected>週3日</option>
+                <option value="4">週4日</option>
+                <option value="5">週5日</option>
+                <option value="6">週6日</option>
+                <option value="7">毎日（週7日）</option>
+              </select>
+            </label>
+            <button id="add-member-btn" class="btn">このメンバーを追加する</button>
+            <p id="add-result" class="hidden" style="margin:0; font-weight:800;"></p>
+          </div>
+        </div>
+        <h2>トレーニングメニューの編集（種目名・単位・説明・画像・動画）</h2>
+        <p class="sub">種目名（メニュー名）・単位（回／分）はここで変えられます。名前を変えて保存すると、メンバーの記録画面にも新しい名前で表示されます。「表示しない」にした種目はメンバーの画面に出なくなります（記録データは消えません）。説明文・画像・動画を付けると、メンバーの記録画面で「やり方を見る」から見られます。<br />画像は画像のURL、動画はYouTubeのリンクがおすすめです。Googleドライブの共有リンクも使えます（ドライブのファイルは「リンクを知っている全員が閲覧可」にしてください）。</p>
+        <div id="menu-edit-list"></div>
+
+        <h2>新しい種目を追加</h2>
+        <div class="card">
+          <div class="form-grid">
+            <label>種目名
+              <input id="new-menu-name" type="text" placeholder="例：キャッチボール" autocomplete="off" />
+            </label>
+            <label>単位
+              <select id="new-menu-unit">
+                <option value="回">回（回数で数える）</option>
+                <option value="分">分（時間で数える）</option>
+              </select>
+            </label>
+            <button id="add-menu-btn" class="btn">この種目を追加する</button>
+            <p id="add-menu-result" class="hidden" style="margin:0; font-weight:800;"></p>
+          </div>
+        </div>
+
+        <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/11hYsUO39468sPgaOVD8aV8BsKhbO1WgO0N_hyB56JRM/edit" target="_blank" rel="noopener">記録のGoogleシートを開く（生データ）→</a>
+      </section>
+
+      <p class="foot-note">記録はチームのGoogleシートに保存されます</p>
+    </main>
+
+    <script>
+      "use strict";
+      var API = "https://script.google.com/macros/s/AKfycbygATfX3C6e-PRzvPz_z2jk_mzkKpPt4zYmlp05DuQJHJRhqXvcNDO47Fe-vjQOUw-37g/exec";
+
+      /* ---------------- API ---------------- */
+      function apiPost(payload) {
+        return fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        }).then(function (r) { return r.json(); }).then(function (j) {
+          if (!j || typeof j.ok === "undefined") throw new Error("bad_response");
+          return j;
+        }).catch(function (err) {
+          // 予備経路は認証情報（PIN）を含まないリクエストだけに使う
+          if (payload.pin || payload.coach_pin || payload.new_pin) throw err;
+          var q = [];
+          Object.keys(payload).forEach(function (k) {
+            var v = payload[k];
+            if (k === "done") { if (v) q.push("done=1"); return; }
+            q.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
+          });
+          return fetch(API + "?" + q.join("&")).then(function (r) { return r.json(); });
+        });
+      }
+      function apiGet(params) {
+        var q = Object.keys(params).map(function (k) {
+          return encodeURIComponent(k) + "=" + encodeURIComponent(params[k]);
+        }).join("&");
+        return fetch(API + "?" + q).then(function (r) { return r.json(); });
+      }
+
+      /* ---------------- date helpers ---------------- */
+      function pad(n) { return (n < 10 ? "0" : "") + n; }
+      function dstr(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+      function todayStr() { return dstr(new Date()); }
+      function parseD(s) { var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+      function addDays(s, n) { var d = parseD(s); d.setDate(d.getDate() + n); return dstr(d); }
+      var DOW = ["日", "月", "火", "水", "木", "金", "土"];
+      function dateLabel(s) {
+        var d = parseD(s);
+        var label = (d.getMonth() + 1) + "月" + d.getDate() + "日（" + DOW[d.getDay()] + "）";
+        if (s === todayStr()) label += " ・今日";
+        else if (s === addDays(todayStr(), -1)) label += " ・昨日";
+        return label;
+      }
+      function mondayOf(s) { var d = parseD(s); var diff = (d.getDay() + 6) % 7; d.setDate(d.getDate() - diff); return dstr(d); }
+
+      /* ---------------- state ---------------- */
+      var S = {
+        members: [],
+        selectedMember: null,
+        me: null,          // {id, name}
+        pin: "",
+        menus: [],
+        logs: [],          // my logs (member view) or all logs (coach view)
+        weeklyGoal: 0,
+        viewDate: todayStr(),
+        calMonth: todayStr().slice(0, 7),
+        period: "week",
+        coachPin: "",
+        coachMembers: [],
+        menuAutoRetried: false
+      };
+      var saveTimers = {};
+      var howtoOpen = {};
+      var $ = function (id) { return document.getElementById(id); };
+
+      function showBanner(msg, kind) {
+        var b = $("banner");
+        b.textContent = msg;
+        b.className = "banner show " + (kind || "info");
+      }
+      function hideBanner() { $("banner").className = "banner"; }
+      function showView(id) {
+        ["view-login", "view-main", "view-coach-login", "view-coach"].forEach(function (v) {
+          $(v).classList.toggle("hidden", v !== id);
+        });
+        window.scrollTo(0, 0);
+      }
+
+      /* ---------------- log computations ---------------- */
+      function logMap(logs) {
+        var m = {};
+        logs.forEach(function (l) { m[l.date + "|" + l.menu_id] = l; });
+        return m;
+      }
+      function doneDates(logs) {
+        var set = {};
+        logs.forEach(function (l) { if (l.done) set[l.date] = true; });
+        return set;
+      }
+      function fullDates(logs, menus) {
+        var per = {};
+        logs.forEach(function (l) { if (l.done) { per[l.date] = per[l.date] || {}; per[l.date][l.menu_id] = true; } });
+        var out = {};
+        Object.keys(per).forEach(function (d) {
+          if (menus.length && menus.every(function (mn) { return per[d][mn.id]; })) out[d] = true;
+        });
+        return out;
+      }
+      function streakOf(logs) {
+        var set = doneDates(logs);
+        var cur = todayStr();
+        if (!set[cur]) cur = addDays(cur, -1);
+        var n = 0;
+        while (set[cur]) { n++; cur = addDays(cur, -1); }
+        return n;
+      }
+      function weekDaysOf(logs) {
+        var set = doneDates(logs);
+        var mon = mondayOf(todayStr());
+        var n = 0;
+        for (var i = 0; i < 7; i++) if (set[addDays(mon, i)]) n++;
+        return n;
+      }
+      function amountOf(log, menu) {
+        if (!log) return 0;
+        return menu.unit === "分" ? (log.minutes || 0) : (log.count || 0);
+      }
+      function menuHidden(menu) {
+        return menu.active === false || menu.active === "false" || menu.active === 0 ||
+               menu.visible === false || menu.hidden === true;
+      }
+      function visibleMenus() {
+        return S.menus.filter(function (m) { return !menuHidden(m); });
+      }
+      function stepOf(menu) {
+        if (menu.unit === "分") return 5;
+        if (menu.id === "oyako") return 1;
+        return 10;
+      }
+
+      /* ---------------- login ---------------- */
+      function loadMembers() {
+        $("login-loading").classList.remove("hidden");
+        $("login-body").classList.add("hidden");
+        hideBanner();
+        apiGet({ action: "members" }).then(function (j) {
+          if (!j.ok) throw new Error(j.error || "error");
+          S.members = j.members || [];
+          renderMemberGrid();
+          $("login-loading").classList.add("hidden");
+          $("login-body").classList.remove("hidden");
+        }).catch(function () {
+          $("login-loading").classList.add("hidden");
+          $("login-body").classList.remove("hidden");
+          $("member-grid").innerHTML = "";
+          $("no-members").classList.remove("hidden");
+          $("no-members").innerHTML = "読み込みに失敗しました。電波の良いところでもう一度開いてみてね。";
+          showBanner("サーバーにつながりませんでした。少し待ってから開き直してください。", "err");
+        });
+      }
+      function renderMemberGrid() {
+        var g = $("member-grid");
+        g.innerHTML = "";
+        $("no-members").classList.toggle("hidden", S.members.length > 0);
+        if (S.members.length === 0) {
+          $("no-members").innerHTML = "まだメンバーが登録されていません。<br />コーチに登録してもらってね。";
+        }
+        S.members.forEach(function (m) {
+          var b = document.createElement("button");
+          b.className = "member-btn";
+          b.textContent = m.name;
+          b.addEventListener("click", function () {
+            S.selectedMember = m;
+            Array.prototype.forEach.call(g.children, function (c) { c.classList.remove("selected"); });
+            b.classList.add("selected");
+            $("pin-area").classList.remove("hidden");
+            $("pin-member-name").textContent = m.name;
+            $("pin-error").classList.add("hidden");
+            $("pin-input").value = "";
+            $("pin-input").focus();
+          });
+          g.appendChild(b);
+        });
+      }
+      function doLogin() {
+        if (!S.selectedMember) return;
+        var pin = $("pin-input").value.trim();
+        if (!pin) { $("pin-error").classList.remove("hidden"); return; }
+        var btn = $("login-btn");
+        btn.disabled = true; btn.textContent = "確認中…";
+        apiPost({ action: "login", member_id: S.selectedMember.id, pin: pin }).then(function (j) {
+          btn.disabled = false; btn.textContent = "ログイン";
+          if (!j.ok) { $("pin-error").classList.remove("hidden"); return; }
+          S.me = j.member; S.pin = pin;
+          S.menus = j.menus || []; S.logs = j.logs || [];
+          S.weeklyGoal = j.weekly_goal || 0;
+          S.viewDate = todayStr();
+          hideBanner();
+          showView("view-main");
+          renderMain();
+        }).catch(function () {
+          btn.disabled = false; btn.textContent = "ログイン";
+          showBanner("つながりませんでした。もう一度試してね。", "err");
+        });
+      }
+
+      /* ---------------- member main ---------------- */
+      function switchTab(tab) {
+        ["today", "calendar", "summary"].forEach(function (t) {
+          $("tab-" + t).classList.toggle("active", t === tab);
+          $("pane-" + t).classList.toggle("hidden", t !== tab);
+        });
+        if (tab === "calendar") renderCalendar();
+        if (tab === "summary") renderSummary();
+      }
+      function renderMain() {
+        $("me-name").textContent = S.me.name;
+        renderStats();
+        renderDay();
+      }
+      function renderStats() {
+        $("streak-num").textContent = streakOf(S.logs);
+        var wd = weekDaysOf(S.logs);
+        var goal = S.weeklyGoal || 0;
+        $("goal-text").textContent = wd + " / " + goal + " 日";
+        $("goal-fill").style.width = goal ? Math.min(100, wd / goal * 100) + "%" : "0%";
+        $("goal-msg").textContent = goal && wd >= goal ? "今週の目標クリア！🎉" :
+          goal ? "あと " + (goal - wd) + " 日で目標達成" : "今週もがんばろう";
+      }
+      function renderDay() {
+        $("date-label").textContent = dateLabel(S.viewDate);
+        $("back-today").classList.toggle("hidden", S.viewDate === todayStr());
+        var map = logMap(S.logs);
+        var list = $("menu-list");
+        list.innerHTML = "";
+        var shownMenus = visibleMenus();
+        shownMenus.forEach(function (menu) {
+          var log = map[S.viewDate + "|" + menu.id];
+          var amount = amountOf(log, menu);
+          var done = !!(log && log.done) || amount > 0;
+          var card = document.createElement("div");
+          card.className = "menu-card" + (done ? " done" : "");
+          card.innerHTML =
+            '<div class="menu-top"><div class="menu-name"></div><div class="check-badge">✓</div></div>' +
+            '<div class="menu-controls">' +
+              '<div class="stepper">' +
+                '<button data-act="minus" aria-label="へらす">−</button>' +
+                '<div class="amount"><span class="amt"></span> <small></small></div>' +
+                '<button data-act="plus" aria-label="ふやす">＋</button>' +
+              '</div>' +
+              '<button class="done-btn" data-act="done">やった！</button>' +
+            '</div>';
+          card.querySelector(".menu-name").textContent = menu.name;
+          card.querySelector(".amt").textContent = amount;
+          card.querySelector(".amount small").textContent = menu.unit;
+          card.querySelector('[data-act="minus"]').addEventListener("click", function () { changeAmount(menu, -stepOf(menu)); });
+          card.querySelector('[data-act="plus"]').addEventListener("click", function () { changeAmount(menu, stepOf(menu)); });
+          card.querySelector('[data-act="done"]').addEventListener("click", function () { toggleDone(menu); });
+          if (hasHowto(menu)) {
+            var hBtn = document.createElement("button");
+            hBtn.className = "howto-btn";
+            hBtn.textContent = howtoOpen[menu.id] ? "やり方をとじる" : "📖 やり方を見る";
+            var hPanel = document.createElement("div");
+            hPanel.className = "howto-panel";
+            if (!howtoOpen[menu.id]) hPanel.classList.add("hidden");
+            buildMediaInto(hPanel, menu);
+            hBtn.addEventListener("click", function () {
+              howtoOpen[menu.id] = !howtoOpen[menu.id];
+              hPanel.classList.toggle("hidden", !howtoOpen[menu.id]);
+              hBtn.textContent = howtoOpen[menu.id] ? "やり方をとじる" : "📖 やり方を見る";
+            });
+            card.appendChild(hBtn);
+            card.appendChild(hPanel);
+          }
+          list.appendChild(card);
+        });
+        var allDone = shownMenus.length > 0 && shownMenus.every(function (menu) {
+          var log = map[S.viewDate + "|" + menu.id];
+          return log && log.done;
+        });
+        $("all-done").classList.toggle("hidden", !allDone);
+      }
+      function currentEntry(menu) {
+        var map = logMap(S.logs);
+        var log = map[S.viewDate + "|" + menu.id];
+        return { amount: amountOf(log, menu), done: !!(log && log.done) || amountOf(log, menu) > 0 };
+      }
+      function setLocalLog(menu, amount, done) {
+        var found = null;
+        S.logs.forEach(function (l) { if (l.date === S.viewDate && l.menu_id === menu.id) found = l; });
+        if (!found) {
+          found = { date: S.viewDate, menu_id: menu.id, done: false, count: 0, minutes: 0 };
+          S.logs.push(found);
+        }
+        found.done = done;
+        if (menu.unit === "分") { found.minutes = amount; found.count = 0; }
+        else { found.count = amount; found.minutes = 0; }
+      }
+      function changeAmount(menu, delta) {
+        var e = currentEntry(menu);
+        var amount = Math.max(0, e.amount + delta);
+        setLocalLog(menu, amount, amount > 0);
+        renderDay(); renderStats();
+        queueSave(menu);
+      }
+      function toggleDone(menu) {
+        var e = currentEntry(menu);
+        var done = !e.done;
+        var amount = e.amount;
+        if (done && amount === 0) amount = stepOf(menu);
+        if (!done) amount = 0;
+        setLocalLog(menu, amount, done);
+        renderDay(); renderStats();
+        queueSave(menu);
+      }
+      function queueSave(menu) {
+        $("save-state").textContent = "保存中…";
+        clearTimeout(saveTimers[menu.id]);
+        saveTimers[menu.id] = setTimeout(function () { saveLog(menu); }, 500);
+      }
+      function saveLog(menu) {
+        var map = logMap(S.logs);
+        var log = map[S.viewDate + "|" + menu.id] || { done: false, count: 0, minutes: 0 };
+        apiPost({
+          action: "setlog", member_id: S.me.id, pin: S.pin,
+          date: S.viewDate, menu_id: menu.id,
+          done: !!log.done, count: log.count || 0, minutes: log.minutes || 0
+        }).then(function (j) {
+          if (!j.ok) throw new Error(j.error || "error");
+          if (j.logs) S.logs = j.logs;
+          $("save-state").textContent = "保存しました ✓ " + new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+          renderStats();
+        }).catch(function () {
+          $("save-state").textContent = "保存できませんでした。電波を確認して、もう一度ボタンを押してね。";
+          showBanner("記録を保存できませんでした。通信状態を確認してください。", "err");
+        });
+      }
+
+      /* ---------------- menu howto media ---------------- */
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        return /^https?:\/\//i.test(u) ? u : "";
+      }
+      function hasHowto(menu) {
+        return !!((menu.description || "").trim() || safeUrl(menu.image_url) || safeUrl(menu.video_url));
+      }
+      function driveFileId(u) {
+        var m = u.match(/drive\.google\.com\/file\/d\/([\w-]+)/) ||
+                u.match(/(?:drive|docs)\.google\.com\/[^\s]*[?&]id=([\w-]+)/);
+        return m ? m[1] : null;
+      }
+      function driveImageUrl(u) {
+        var id = driveFileId(u);
+        return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w1200" : u;
+      }
+      function youtubeId(u) {
+        var m = u.match(/(?:youtube\.com\/(?:watch\?[^#\s]*v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{6,})/);
+        return m ? m[1] : null;
+      }
+      function buildVideo(url, name) {
+        var yt = youtubeId(url);
+        var vm = url.match(/vimeo\.com\/(\d+)/);
+        var dv = driveFileId(url);
+        var frame = document.createElement("div");
+        frame.className = "video-frame";
+        var iframe = document.createElement("iframe");
+        if (yt || vm || dv) {
+          iframe.src = yt ? "https://www.youtube-nocookie.com/embed/" + yt :
+                       vm ? "https://player.vimeo.com/video/" + vm[1] :
+                            "https://drive.google.com/file/d/" + dv + "/preview";
+          iframe.title = (name || "トレーニング") + "の動画";
+          iframe.setAttribute("allow", "accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen");
+          iframe.setAttribute("allowfullscreen", "");
+          iframe.loading = "lazy";
+          frame.appendChild(iframe);
+          return frame;
+        }
+        if (/\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(url)) {
+          var v = document.createElement("video");
+          v.src = url; v.controls = true; v.playsInline = true; v.preload = "metadata";
+          frame.appendChild(v);
+          return frame;
+        }
+        var a = document.createElement("a");
+        a.className = "btn sub-btn video-link";
+        a.href = url; a.target = "_blank"; a.rel = "noopener";
+        a.textContent = "▶ 動画を見る";
+        return a;
+      }
+      function buildMediaInto(container, menu) {
+        container.innerHTML = "";
+        var desc = (menu.description || "").trim();
+        if (desc) {
+          var p = document.createElement("p");
+          p.className = "howto-desc";
+          p.textContent = desc;
+          container.appendChild(p);
+        }
+        var img = safeUrl(menu.image_url);
+        if (img) {
+          var im = document.createElement("img");
+          im.className = "howto-img";
+          im.alt = (menu.name || "トレーニング") + "のやり方の画像";
+          im.loading = "lazy";
+          im.src = driveImageUrl(img);
+          im.addEventListener("error", function () { im.remove(); });
+          container.appendChild(im);
+        }
+        var vid = safeUrl(menu.video_url);
+        if (vid) container.appendChild(buildVideo(vid, menu.name));
+      }
+
+      /* ---------------- calendar ---------------- */
+      function renderCalendar() {
+        var parts = S.calMonth.split("-");
+        var y = +parts[0], mo = +parts[1];
+        $("cal-label").textContent = y + "年" + mo + "月";
+        var dow = $("cal-dow");
+        if (!dow.children.length) {
+          DOW.forEach(function (d) {
+            var c = document.createElement("div");
+            c.className = "cal-dow"; c.textContent = d; dow.appendChild(c);
+          });
+        }
+        var set = doneDates(S.logs);
+        var full = fullDates(S.logs, visibleMenus());
+        var first = new Date(y, mo - 1, 1);
+        var startDay = addDays(dstr(first), -first.getDay());
+        var grid = $("cal-grid");
+        grid.innerHTML = "";
+        for (var i = 0; i < 42; i++) {
+          var ds = addDays(startDay, i);
+          var d = parseD(ds);
+          var b = document.createElement("button");
+          b.className = "cal-day";
+          if (d.getMonth() !== mo - 1) b.classList.add("other");
+          if (ds === todayStr()) b.classList.add("is-today");
+          if (ds === S.viewDate) b.classList.add("selected");
+          if (full[ds]) b.classList.add("full");
+          b.innerHTML = "<span>" + d.getDate() + "</span>" + (set[ds] ? '<span class="dot"></span>' : "");
+          (function (target) {
+            b.addEventListener("click", function () {
+              S.viewDate = target;
+              switchTab("today");
+              renderDay();
+            });
+          })(ds);
+          grid.appendChild(b);
+        }
+      }
+
+      /* ---------------- summary ---------------- */
+      function renderSummary() {
+        var start, end;
+        if (S.period === "week") { start = mondayOf(todayStr()); end = addDays(start, 6); }
+        else { var t = todayStr(); start = t.slice(0, 8) + "01"; var d = parseD(start); d.setMonth(d.getMonth() + 1); d.setDate(0); end = dstr(d); }
+        var inRange = S.logs.filter(function (l) { return l.date >= start && l.date <= end; });
+        $("sum-days").textContent = Object.keys(doneDates(inRange)).length;
+        var body = $("sum-body");
+        body.innerHTML = "";
+        visibleMenus().forEach(function (menu) {
+          var total = 0; var days = {};
+          inRange.forEach(function (l) {
+            if (l.menu_id !== menu.id) return;
+            total += amountOf(l, menu);
+            if (l.done) days[l.date] = true;
+          });
+          var tr = document.createElement("tr");
+          var td1 = document.createElement("td"); td1.textContent = menu.name;
+          var td2 = document.createElement("td"); td2.textContent = total + " " + menu.unit;
+          var td3 = document.createElement("td"); td3.textContent = Object.keys(days).length + " 日";
+          tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+          body.appendChild(tr);
+        });
+      }
+
+      /* ---------------- coach ---------------- */
+      function doCoachLogin() {
+        var pin = $("coach-pin-input").value.trim();
+        if (!pin) return;
+        var btn = $("coach-login-btn");
+        btn.disabled = true; btn.textContent = "確認中…";
+        apiPost({ action: "coach", pin: pin }).then(function (j) {
+          btn.disabled = false; btn.textContent = "開く";
+          if (!j.ok) { $("coach-pin-error").classList.remove("hidden"); return; }
+          S.coachPin = pin;
+          S.coachMembers = j.members || [];
+          if (j.menus && j.menus.length) S.menus = j.menus;
+          S.menuAutoRetried = false;
+          S.logs = j.logs || [];
+          hideBanner();
+          showView("view-coach");
+          try { renderCoach(); } catch (err) { renderMenuEditor(); }
+        }).catch(function () {
+          btn.disabled = false; btn.textContent = "開く";
+          showBanner("つながりませんでした。もう一度試してください。", "err");
+        });
+      }
+      function renderCoach() {
+        $("coach-date").textContent = dateLabel(todayStr()) + " の記録";
+        var today = todayStr();
+        var list = $("coach-list");
+        list.innerHTML = "";
+        var todayCount = 0, weekTotal = 0;
+        S.coachMembers.forEach(function (m) {
+          var mine = S.logs.filter(function (l) { return l.member_id === m.id; });
+          var map = logMap(mine);
+          var shown = visibleMenus();
+          var doneToday = shown.filter(function (menu) {
+            var l = map[today + "|" + menu.id]; return l && l.done;
+          }).length;
+          if (doneToday > 0) todayCount++;
+          var wd = weekDaysOf(mine);
+          weekTotal += wd;
+          var st = streakOf(mine);
+          var row = document.createElement("div");
+          row.className = "coach-row";
+          row.innerHTML =
+            '<div class="r1"><span class="rname"></span><span class="rtoday"></span></div>' +
+            '<div class="r2"></div><div class="rpin"></div><div class="goalbar"><div></div></div>';
+          row.querySelector(".rname").textContent = m.name;
+          var rp = row.querySelector(".rpin");
+          if (m.pin !== undefined && m.pin !== null && String(m.pin) !== "") {
+            rp.textContent = "合言葉：" + m.pin;
+          } else {
+            rp.remove();
+          }
+          var rt = row.querySelector(".rtoday");
+          rt.textContent = doneToday > 0 ? "今日 " + doneToday + "/" + shown.length + " 種目" : "今日はまだ";
+          if (doneToday > 0) rt.classList.add("did");
+          row.querySelector(".r2").textContent =
+            "れんぞく " + st + "日 ・ 今週 " + wd + "/" + (m.weekly_goal || 0) + "日";
+          row.querySelector(".goalbar > div").style.width =
+            m.weekly_goal ? Math.min(100, wd / m.weekly_goal * 100) + "%" : "0%";
+          list.appendChild(row);
+        });
+        $("coach-today-count").textContent = todayCount;
+        $("coach-total").textContent = S.coachMembers.length;
+        $("coach-week-total").textContent = weekTotal;
+        $("coach-empty").classList.toggle("hidden", S.coachMembers.length > 0);
+        renderMenuEditor();
+      }
+      function doAddMember() {
+        var name = $("new-name").value.trim();
+        var pin = $("new-pin").value.trim();
+        var goal = $("new-goal").value;
+        var res = $("add-result");
+        res.classList.remove("hidden");
+        if (!name) { res.textContent = "名前を入れてください。"; res.style.color = "var(--red)"; return; }
+        if (!/^\d{4}$/.test(pin)) { res.textContent = "合言葉は4けたの数字にしてください。"; res.style.color = "var(--red)"; return; }
+        var btn = $("add-member-btn");
+        btn.disabled = true; btn.textContent = "追加中…";
+        apiPost({ action: "addmember", coach_pin: S.coachPin, name: name, new_pin: pin, weekly_goal: Number(goal) }).then(function (j) {
+          btn.disabled = false; btn.textContent = "このメンバーを追加する";
+          if (!j.ok) { res.textContent = "追加できませんでした（" + (j.error || "error") + "）"; res.style.color = "var(--red)"; return; }
+          res.textContent = "「" + name + "」を追加しました。合言葉 " + pin + " を本人に伝えてください。";
+          res.style.color = "var(--green)";
+          $("new-name").value = ""; $("new-pin").value = "";
+          // 一覧を更新
+          apiPost({ action: "coach", pin: S.coachPin }).then(function (jj) {
+            if (jj.ok) { S.coachMembers = jj.members || []; S.logs = jj.logs || []; if (jj.menus && jj.menus.length) S.menus = jj.menus; renderCoach(); }
+          });
+        }).catch(function () {
+          btn.disabled = false; btn.textContent = "このメンバーを追加する";
+          res.textContent = "通信に失敗しました。もう一度試してください。";
+          res.style.color = "var(--red)";
+        });
+      }
+
+      /* ---------------- coach: menu content editor ---------------- */
+      function reloadCoachData(btn) {
+        if (!S.coachPin) return;
+        btn.disabled = true; btn.textContent = "読み込み中…";
+        apiPost({ action: "coach", pin: S.coachPin }).then(function (j) {
+          if (j.ok) {
+            S.coachMembers = j.members || S.coachMembers;
+            if (j.menus && j.menus.length) S.menus = j.menus;
+            if (j.logs) S.logs = j.logs;
+            try { renderCoach(); } catch (err) { renderMenuEditor(); }
+          } else {
+            btn.disabled = false; btn.textContent = "メニューを再読み込みする";
+            showBanner("再読み込みできませんでした。もう一度試してください。", "err");
+          }
+        }).catch(function () {
+          btn.disabled = false; btn.textContent = "メニューを再読み込みする";
+          showBanner("通信に失敗しました。電波の良いところでもう一度試してください。", "err");
+        });
+      }
+      function renderMenuEditor() {
+        var list = $("menu-edit-list");
+        if (!list) return;
+        list.innerHTML = "";
+        if (!S.menus.length) {
+          var empty = document.createElement("div");
+          empty.className = "card";
+          empty.innerHTML =
+            '<p style="margin:0 0 8px; font-weight:800;">メニューを読み込めませんでした。</p>' +
+            '<p class="field-note" style="margin:0 0 12px;">通信の状態によっては、コーチ画面を開いたときにメニュー一覧が届かないことがあります。下のボタンで再読み込みしてください。それでも直らない場合は、Googleシートの「menus」タブでも直接編集できます。</p>';
+          var reloadBtn = document.createElement("button");
+          reloadBtn.className = "btn";
+          reloadBtn.textContent = "メニューを再読み込みする";
+          reloadBtn.addEventListener("click", function () { reloadCoachData(reloadBtn); });
+          empty.appendChild(reloadBtn);
+          list.appendChild(empty);
+          // 開いた直後に届いていなかっただけのことがあるので、1回だけ自動で取り直す
+          if (S.coachPin && !S.menuAutoRetried) {
+            S.menuAutoRetried = true;
+            setTimeout(function () { reloadCoachData(reloadBtn); }, 600);
+          }
+          return;
+        }
+        S.menus.forEach(function (menu) {
+          var card = document.createElement("div");
+          card.className = "card menu-edit-card";
+          card.innerHTML =
+            '<p class="me-title"></p>' +
+            '<div class="form-grid">' +
+              '<label>種目名（メニュー名）' +
+                '<input class="f-name" type="text" placeholder="例：素振り" autocomplete="off" />' +
+                '<span class="field-note">ここを書き換えて保存すると、種目名が変わります。メンバーの画面にも新しい名前で表示されます。</span>' +
+              '</label>' +
+              '<label>単位' +
+                '<select class="f-unit">' +
+                  '<option value="回">回（回数で数える）</option>' +
+                  '<option value="分">分（時間で数える）</option>' +
+                '</select>' +
+              '</label>' +
+              '<label>メンバーの画面への表示' +
+                '<select class="f-active">' +
+                  '<option value="1">表示する</option>' +
+                  '<option value="0">表示しない（お休みにする）</option>' +
+                '</select>' +
+                '<span class="field-note">「表示しない」にするとメンバーの記録画面に出なくなります。これまでの記録データは消えません。</span>' +
+              '</label>' +
+              '<label>説明テキスト（やり方・ポイント）' +
+                '<textarea class="f-desc" rows="3" placeholder="例：バットは大きく振る。10回×3セット。"></textarea>' +
+              '</label>' +
+              '<label>画像のURL' +
+                '<input class="f-img" type="url" inputmode="url" placeholder="https://…（画像のURL／ドライブの共有リンク）" />' +
+              '</label>' +
+              '<label>動画のURL' +
+                '<input class="f-vid" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=… など" />' +
+              '</label>' +
+              '<div class="menu-edit-preview"></div>' +
+              '<div class="save-menu-row">' +
+                '<button class="btn save-menu-btn">この内容を保存する</button>' +
+                '<span class="save-menu-result"></span>' +
+              '</div>' +
+              '<span class="field-note">説明・画像・動画は、空欄にして保存するとその内容は消えます（種目名は空欄にはできません）。プレビューは入力すると下に表示されます。</span>' +
+            '</div>';
+          var titleEl = card.querySelector(".me-title");
+          titleEl.textContent = menuHidden(menu) ? menu.name + "（非表示中）" : menu.name;
+          var nameIn = card.querySelector(".f-name");
+          var unitSel = card.querySelector(".f-unit");
+          var activeSel = card.querySelector(".f-active");
+          var ta = card.querySelector(".f-desc");
+          var imgIn = card.querySelector(".f-img");
+          var vidIn = card.querySelector(".f-vid");
+          var preview = card.querySelector(".menu-edit-preview");
+          var result = card.querySelector(".save-menu-result");
+          nameIn.value = menu.name || "";
+          unitSel.value = menu.unit === "分" ? "分" : "回";
+          activeSel.value = menuHidden(menu) ? "0" : "1";
+          ta.value = menu.description || "";
+          imgIn.value = menu.image_url || "";
+          vidIn.value = menu.video_url || "";
+          function refreshPreview() {
+            buildMediaInto(preview, { name: nameIn.value.trim() || menu.name, description: ta.value, image_url: imgIn.value, video_url: vidIn.value });
+          }
+          nameIn.addEventListener("input", function () {
+            titleEl.textContent = (nameIn.value.trim() || menu.name || "（種目名）") + (activeSel.value === "0" ? "（非表示中）" : "");
+          });
+          activeSel.addEventListener("change", function () {
+            titleEl.textContent = (nameIn.value.trim() || menu.name || "（種目名）") + (activeSel.value === "0" ? "（非表示中）" : "");
+          });
+          [ta, imgIn, vidIn].forEach(function (el) { el.addEventListener("input", refreshPreview); });
+          refreshPreview();
+          card.querySelector(".save-menu-btn").addEventListener("click", function () {
+            var btn = this;
+            var wantName = nameIn.value.trim();
+            if (!wantName) {
+              result.style.color = "var(--red)";
+              result.textContent = "種目名を入れてください。空欄では保存できません。";
+              nameIn.focus();
+              return;
+            }
+            var wantDesc = ta.value.trim();
+            var wantImg = imgIn.value.trim();
+            var wantVid = vidIn.value.trim();
+            var wantUnit = unitSel.value === "分" ? "分" : "回";
+            var wantActive = activeSel.value !== "0";
+            var oldName = menu.name;
+            var nameChanged = wantName !== String(oldName || "").trim();
+            btn.disabled = true; btn.textContent = "保存中…";
+            result.textContent = "";
+            var norm = function (v) { return String(v == null ? "" : v).replace(/\r\n?/g, "\n").trim(); };
+            function send(payload) {
+              // 通信が一瞬途切れただけのことがあるので、失敗したら1回だけ自動で送り直す
+              return apiPost(payload).catch(function () { return apiPost(payload); });
+            }
+            function makePayload() {
+              return {
+                action: "updatemenu", coach_pin: S.coachPin, menu_id: menu.id,
+                name: wantName, menu_name: wantName, new_name: wantName, title: wantName,
+                unit: wantUnit,
+                active: wantActive, visible: wantActive, hidden: !wantActive,
+                description: wantDesc, image_url: wantImg, video_url: wantVid
+              };
+            }
+            function findSaved(menus, single) {
+              var saved = null;
+              if (menus && menus.length) menus.forEach(function (mm) { if (mm.id === menu.id) saved = mm; });
+              if (!saved && single && single.id === menu.id) saved = single;
+              return saved;
+            }
+            function applySaved(saved) {
+              // サーバーに実際に保存された内容で、欄とプレビューを表示し直す
+              if (saved.name) { nameIn.value = saved.name; menu.name = saved.name; }
+              if (typeof saved.unit !== "undefined" && saved.unit) { menu.unit = saved.unit; unitSel.value = saved.unit === "分" ? "分" : "回"; }
+              if (typeof saved.active !== "undefined" || typeof saved.visible !== "undefined" || typeof saved.hidden !== "undefined") {
+                menu.active = saved.active; menu.visible = saved.visible; menu.hidden = saved.hidden;
+                activeSel.value = menuHidden(menu) ? "0" : "1";
+              }
+              titleEl.textContent = (menu.name || "") + (menuHidden(menu) ? "（非表示中）" : "");
+              ta.value = saved.description || "";
+              imgIn.value = saved.image_url || "";
+              vidIn.value = saved.video_url || "";
+              menu.description = saved.description || "";
+              menu.image_url = saved.image_url || "";
+              menu.video_url = saved.video_url || "";
+              refreshPreview();
+            }
+            function savedHasState(saved) {
+              return typeof saved.active !== "undefined" || typeof saved.visible !== "undefined" || typeof saved.hidden !== "undefined";
+            }
+            function differsFromWant(saved) {
+              if (norm(saved.name) !== norm(wantName) ||
+                  norm(saved.description) !== norm(wantDesc) ||
+                  norm(saved.image_url) !== norm(wantImg) ||
+                  norm(saved.video_url) !== norm(wantVid)) return true;
+              if (typeof saved.unit !== "undefined" && saved.unit && norm(saved.unit) !== norm(wantUnit)) return true;
+              if (savedHasState(saved) && menuHidden(saved) === wantActive) return true;
+              return false;
+            }
+            function finishOk(resynced) {
+              btn.disabled = false; btn.textContent = "この内容を保存する";
+              result.style.color = "var(--green)";
+              result.textContent = resynced ?
+                "保存しました ✓（サーバーに保存された内容で表示し直しました）" :
+                (nameChanged ? "保存しました ✓ 種目名を「" + wantName + "」に変えました" : "保存しました ✓");
+            }
+            function finishError(j) {
+              btn.disabled = false; btn.textContent = "この内容を保存する";
+              result.style.color = "var(--red)";
+              result.textContent = j && j.error === "unknown_action" ?
+                "保存用のAPIに届きませんでした。時間をおいてもう一度試すか、Googleシートの「menus」タブで直接編集してください。" :
+                "保存できませんでした（" + ((j && j.error) || "error") + "）";
+            }
+            function finishCommError() {
+              btn.disabled = false; btn.textContent = "この内容を保存する";
+              result.style.color = "var(--red)";
+              result.textContent = "通信に失敗しました。もう一度試してください。";
+            }
+            function finishNameFailed(saved) {
+              if (saved) applySaved(saved);
+              btn.disabled = false; btn.textContent = "この内容を保存する";
+              result.style.color = "var(--red)";
+              result.textContent = "説明などは保存しましたが、種目名はサーバーに反映されませんでした。お手数ですが Googleシートの「menus」タブで name 列を直接書き換えてください。" +
+                (saved ? "（この画面の欄はサーバーに保存された名前で表示し直しました）" : "");
+            }
+            send(makePayload()).then(function (j) {
+              if (!j.ok) { finishError(j); return; }
+              // いったん希望どおりの内容でローカルを揃える（サーバーの保存内容と違えば後で直す）
+              menu.name = wantName;
+              menu.unit = wantUnit;
+              menu.active = wantActive; menu.visible = wantActive; menu.hidden = !wantActive;
+              menu.description = wantDesc;
+              menu.image_url = wantImg;
+              menu.video_url = wantVid;
+              titleEl.textContent = wantName + (wantActive ? "" : "（非表示中）");
+              var saved = null;
+              if (j.menus && j.menus.length) { S.menus = j.menus; saved = findSaved(j.menus, j.menu); }
+              else if (j.menu) saved = findSaved(null, j.menu);
+              if (!nameChanged) {
+                if (saved && differsFromWant(saved)) { applySaved(saved); finishOk(true); }
+                else finishOk(false);
+                return;
+              }
+              // 名前を変えたときは、応答の中身だけで判断せず、実際に新しい名前で保存されたか確認する
+              if (saved && norm(saved.name) === norm(wantName)) {
+                var resync = differsFromWant(saved);
+                if (resync) applySaved(saved);
+                finishOk(resync);
+                return;
+              }
+              // 応答から名前の反映を確認できない／反映されていない場合は、もう一度送ってから
+              // 最新のメニュー一覧を読み直し、新しい名前になっているか最終確認する
+              result.textContent = "保存を確認中…";
+              send(makePayload()).then(function (j2) {
+                if (!j2.ok) { finishError(j2); return; }
+                return apiPost({ action: "coach", pin: S.coachPin }).then(function (jj) {
+                  var fresh = null;
+                  if (jj && jj.ok && jj.menus && jj.menus.length) {
+                    S.menus = jj.menus;
+                    fresh = findSaved(jj.menus, null);
+                  }
+                  if (!fresh) fresh = findSaved(j2.menus, j2.menu);
+                  if (fresh && norm(fresh.name) === norm(wantName)) {
+                    var resync2 = differsFromWant(fresh);
+                    if (resync2) applySaved(fresh);
+                    finishOk(resync2);
+                  } else {
+                    finishNameFailed(fresh);
+                  }
+                });
+              }).catch(function () { finishCommError(); });
+            }).catch(function () { finishCommError(); });
+          });
+          list.appendChild(card);
+        });
+      }
+
+      /* ---------------- coach: add new menu ---------------- */
+      function doAddMenu() {
+        var name = $("new-menu-name").value.trim();
+        var unit = $("new-menu-unit").value === "分" ? "分" : "回";
+        var res = $("add-menu-result");
+        res.classList.remove("hidden");
+        if (!name) { res.textContent = "種目名を入れてください。"; res.style.color = "var(--red)"; return; }
+        var btn = $("add-menu-btn");
+        btn.disabled = true; btn.textContent = "追加中…";
+        function send(payload) {
+          return apiPost(payload).catch(function () { return apiPost(payload); });
+        }
+        send({ action: "addmenu", coach_pin: S.coachPin, name: name, menu_name: name, new_name: name, title: name, unit: unit }).then(function (j) {
+          if (!j.ok) {
+            btn.disabled = false; btn.textContent = "この種目を追加する";
+            res.style.color = "var(--red)";
+            res.textContent = j.error === "unknown_action" ?
+              "追加用のAPIに届きませんでした。Googleシートの「menus」タブに直接行を追加しても追加できます。" :
+              "追加できませんでした（" + (j.error || "error") + "）";
+            return;
+          }
+          // 実際に追加されたか、一覧を読み直して確認する
+          apiPost({ action: "coach", pin: S.coachPin }).then(function (jj) {
+            btn.disabled = false; btn.textContent = "この種目を追加する";
+            var found = false;
+            if (jj && jj.ok) {
+              S.coachMembers = jj.members || S.coachMembers;
+              if (jj.logs) S.logs = jj.logs;
+              if (jj.menus && jj.menus.length) {
+                S.menus = jj.menus;
+                found = jj.menus.some(function (mm) { return String(mm.name || "").trim() === name; });
+              }
+            }
+            if (found) {
+              res.style.color = "var(--green)";
+              res.textContent = "種目「" + name + "」を追加しました。下の編集一覧にも出ています。";
+              $("new-menu-name").value = "";
+            } else {
+              res.style.color = "var(--red)";
+              res.textContent = "追加を受け付けましたが、一覧で確認できませんでした。コーチ画面を開き直すか、シートの「menus」タブで確認してください。";
+            }
+            try { renderCoach(); } catch (err) { renderMenuEditor(); }
+          }).catch(function () {
+            btn.disabled = false; btn.textContent = "この種目を追加する";
+            res.style.color = "var(--red)";
+            res.textContent = "追加の確認で通信に失敗しました。再読み込みして確認してください。";
+            try { renderCoach(); } catch (err) { renderMenuEditor(); }
+          });
+        }).catch(function () {
+          btn.disabled = false; btn.textContent = "この種目を追加する";
+          res.style.color = "var(--red)";
+          res.textContent = "通信に失敗しました。もう一度試してください。";
+        });
+      }
+
+      /* ---------------- events ---------------- */
+      $("login-btn").addEventListener("click", doLogin);
+      $("pin-input").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
+      $("logout-btn").addEventListener("click", function () {
+        S.me = null; S.pin = ""; S.logs = [];
+        showView("view-login");
+        loadMembers();
+      });
+      $("to-coach").addEventListener("click", function () { showView("view-coach-login"); $("coach-pin-error").classList.add("hidden"); });
+      $("coach-back").addEventListener("click", function () { showView("view-login"); });
+      $("coach-login-btn").addEventListener("click", doCoachLogin);
+      $("coach-pin-input").addEventListener("keydown", function (e) { if (e.key === "Enter") doCoachLogin(); });
+      $("coach-logout").addEventListener("click", function () { S.coachPin = ""; showView("view-login"); loadMembers(); });
+      $("add-member-btn").addEventListener("click", doAddMember);
+      $("add-menu-btn").addEventListener("click", doAddMenu);
+
+      $("tab-today").addEventListener("click", function () { switchTab("today"); });
+      $("tab-calendar").addEventListener("click", function () { switchTab("calendar"); });
+      $("tab-summary").addEventListener("click", function () { switchTab("summary"); });
+      $("day-prev").addEventListener("click", function () { S.viewDate = addDays(S.viewDate, -1); renderDay(); });
+      $("day-next").addEventListener("click", function () { S.viewDate = addDays(S.viewDate, 1); renderDay(); });
+      $("back-today").addEventListener("click", function () { S.viewDate = todayStr(); renderDay(); });
+      $("cal-prev").addEventListener("click", function () {
+        var d = parseD(S.calMonth + "-01"); d.setMonth(d.getMonth() - 1); S.calMonth = dstr(d).slice(0, 7); renderCalendar();
+      });
+      $("cal-next").addEventListener("click", function () {
+        var d = parseD(S.calMonth + "-01"); d.setMonth(d.getMonth() + 1); S.calMonth = dstr(d).slice(0, 7); renderCalendar();
+      });
+      $("per-week").addEventListener("click", function () { S.period = "week"; $("per-week").classList.add("active"); $("per-month").classList.remove("active"); renderSummary(); });
+      $("per-month").addEventListener("click", function () { S.period = "month"; $("per-month").classList.add("active"); $("per-week").classList.remove("active"); renderSummary(); });
+
+      loadMembers();
+    </script>
+  </body>
+</html>
